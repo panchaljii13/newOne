@@ -39,12 +39,13 @@ class UserController extends Controller
       Auth::login($user); // Use Auth facade to log in the user
 
       // Redirect to the homepage or a different page after registration
-      return redirect()->route('UserLogin'); // Assuming 'home' is your route name for the homepage
+      return redirect()->route('UserLogin'); // Assuming 'home' is your route name for the LoginPage
   }
 
 
   public function UserLogin()
   {
+   
       return view('UserLogin');
   }
 
@@ -58,13 +59,27 @@ class UserController extends Controller
 
       if (Auth::attempt($credentials)) {
           // Authentication passed
-          return redirect()->intended('/');
+          return redirect()->intended('Home');
       }
 
       // Authentication failed
       return back()->withErrors([
           'email' => 'The provided credentials do not match our records.',
       ]);
+  }
+
+  public function logout(Request $request)
+  {
+      Auth::logout();
+      if(Auth::check()){
+        return redirect()->route('UserLogin');
+    }
+      // Invalidate the session and regenerate the CSRF token to avoid session fixation attacks
+      $request->session()->invalidate();
+      $request->session()->regenerateToken();
+
+      // Redirect to login page
+      return redirect('UserLogin');
   }
   
 }

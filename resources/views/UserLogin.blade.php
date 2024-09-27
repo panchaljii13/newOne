@@ -29,7 +29,7 @@
                                        placeholder="Enter Password" required />
                             </div>
 
-                            <button type="submit" class="btn btn-success btn-lg mb-1">Submit</button>
+                            <button type="submit" style="width: 100px; height: 40px; padding: 0; line-height: 40px; border: none;" class="btn btn-success btn-lg mb-1">Submit</button>
 
                             <p class="small fw-bold mt-2 pt-1 mb-0">Don't have an account? <a href="{{ route('UserRegistration') }}"
                                 class="link-danger">Register</a></p>
