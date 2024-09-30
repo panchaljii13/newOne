@@ -1,55 +1,60 @@
 <?php
 
+namespace App\Http\Controllers;
+
 use App\Models\File;
+use App\Models\Folder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class FileController extends Controller
 {
-    // Show the form to upload a file to a specific folder
-    public function create($folderId)
+    // Display form for uploading a file
+    public function showUploadForm($folderId)
     {
-        return view('files.create', compact('folderId'));
+        $folder = Folder::findOrFail($folderId);
+        return view('create', compact('create'));
     }
 
-    // Store a newly created file in storage
-    public function store(Request $request)
+    // Store the uploaded file
+    public function uploadFile(Request $request, $id)
     {
+        // Validate the file upload
         $request->validate([
-            'folder_id' => 'required|exists:folders,id',
-            'file' => 'required|file|mimes:pdf,jpg,png,docx|max:2048', // Validate file types and size
+            'file' => 'required|file|mimes:jpg,png,pdf,docx,txt|max:2048'
         ]);
 
-        // Store the file
-        $path = $request->file('file')->store('files');
+        // Handle the file upload
+        if ($request->hasFile('file')) {
+            $file = $request->file('file');
+            $filePath = $file->store('files', 'public'); // Save file in public storage
 
-        // Create a new file record in the database
-        File::create([
-            'user_id' => auth()->id(),  // Assuming the user is authenticated
-            'folder_id' => $request->folder_id,
-            'file_path' => $path,
-        ]);
+            // Save file info to the database
+            File::create([
+                'user_id' => Auth::id(),
+                'folder_id' => $id,
+                'file_path' => $filePath,
+            ]);
 
-        return redirect()->route('files.index', $request->folder_id)
-            ->with('success', 'File uploaded successfully.');
+            return redirect()->back()->with('success', 'File uploaded successfully.');
+        }
+
+        return redirect()->back()->with('error', 'Failed to upload file.');
     }
 
-    // Display all files in a specific folder
-    public function index($folderId)
+    // Download the file
+    public function download($id)
     {
-        $files = File::where('folder_id', $folderId)->get();
-        return view('files.index', compact('files', 'folderId'));
+        $file = File::findOrFail($id);
+        return Storage::disk('public')->download($file->file_path);
     }
 
-    // Delete a specific file
+    // Delete the file
     public function destroy($id)
     {
         $file = File::findOrFail($id);
-        
-        // Delete the file from storage
-        Storage::delete($file->file_path);
-        
-        // Delete the file record from the database
+        Storage::disk('public')->delete($file->file_path);
         $file->delete();
 
         return redirect()->back()->with('success', 'File deleted successfully.');

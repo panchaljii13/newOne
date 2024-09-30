@@ -41,7 +41,7 @@ class FolderController extends Controller
             'name' => $request->name,
             'parent_id' => $request->parent_id,
         ]);
-
+        // dd($request->all());
         return redirect()->route('indexFolder')
             ->with('success', 'Folder created successfully.');
     }
@@ -62,20 +62,44 @@ class FolderController extends Controller
         return view('show', compact('folder'));
     }
 
+    public function edit($id)
+{
+    $folder = Folder::findOrFail($id); // Find the folder by its ID
+    return view('editFolder', compact('folder')); // Return the edit view with folder data
+}
+public function update(Request $request, $id)
+{
+    // Validate the request data
+    $request->validate([
+        'name' => 'required|string|max:255',
+    ]);
+
+    // Find the folder and update its name
+    $folder = Folder::findOrFail($id);
+    $folder->update([
+        'name' => $request->input('name'),
+    ]);
+
+    return redirect()->route('indexFolder')->with('success', 'Folder name updated successfully.');
+}
+
     // Update folder visibility
-    public function update(Request $request, $id)
+    public function Rename(Request $request, $id)
     {
-        $folder = Folder::findOrFail($id);
+        // Validate the request data
         $request->validate([
-            'is_public' => 'required|boolean',
+            'name' => 'required|string|max:255',
+            'is_public' => 'nullable|boolean', // Ensure that is_public is a boolean value
         ]);
-
+    
+        // Find the folder and update its details
+        $folder = Folder::findOrFail($id);
         $folder->update([
-            'is_public' => $request->is_public,
+            'name' => $request->input('name'),
+            'is_public' => $request->has('is_public') ? true : false, // Default to false if unchecked
         ]);
-
-        return redirect()->route('folders.index')
-            ->with('success', 'Folder visibility updated successfully.');
+    
+        return redirect()->route('indexFolder')->with('success', 'Folder updated successfully.');
     }
 
     // Delete a specific folder
@@ -84,7 +108,27 @@ class FolderController extends Controller
         $folder = Folder::findOrFail($id);
         $folder->delete();
 
-        return redirect()->route('folders.index')
+        return redirect()->route('indexFolder')
             ->with('success', 'Folder deleted successfully.');
     }
+
+    public function togglePublic($id)
+{
+    $folder = Folder::findOrFail($id);
+
+    // Toggle the public status
+    $folder->is_public = !$folder->is_public;
+    $folder->save();
+
+    return redirect()->back()->with('success', 'Folder visibility updated successfully.');
+}
+public function public()
+{
+    // Fetch only public folders along with their files and the user who created the folder
+    $folders = Folder::with(['files', 'user'])
+                     ->where('is_public', true)
+                     ->get();
+
+    return view('Home', compact('folders'));
+}
 }
