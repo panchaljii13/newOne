@@ -31,12 +31,6 @@
         <input type="text" id="name" name="name" class="form-control" value="{{ $folder->name }}" required>
     </div>
 
-    {{-- Add the is_public field (checkbox) --}}
-    <div class="form-outline mb-4">
-        <label class="form-label" for="is_public">Public Folder</label>
-        <input type="checkbox" id="is_public" name="is_public" {{ $folder->is_public ? 'checked' : '' }}> 
-        <span>Make this folder public</span>
-    </div>
 
     <button type="submit" class="btn btn-success">Update</button>
     <a href="{{ route('indexFolder') }}" class="btn btn-primary">Cancel</a>

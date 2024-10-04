@@ -1,70 +1,121 @@
 @extends('Layout')
-@section('title', 'Home')
+@section('title', 'Homeindex')
 @section('content')
 
 @include('include.Header')
-<h1>welcome</h1>
-<h1></h1>
-<p>hello</p>
-<h1>welcome</h1>
-@auth
-<h1>{{auth()->user()->name}}</h1>
-@endauth
 
 <div>
-<section class="h-100" style="background: linear-gradient(to right, #6a11cb, #2575fc);">
-    <div class="container py-5 h-100">
-        <div class="row justify-content-center align-items-start h-100">
-            <div class="col-lg-10 col-xl-10">
-                <div class="card shadow-lg rounded-4 border-0">
+<section class="h-100" style="min-height: 100vh;">
+    <div class="py-5">
+        <div class="row h-100">
+            <div class="col-lg-12 col-xl-12">
+                <div class="card">
                     <div class="card-body p-9">
-                        <h3 class="text-center mb-4 text-black">Public Folders</h3>
+                        <h3 class="text-center mb-4 text-black">Welcome to Your Document Management System! This is Public Folders</h3>
 
-                        {{-- Check if there are folders --}}
+                        {{-- Check if there are public parent folders --}}
                         @if($folders->isEmpty())
                             <p>No public folders available.</p>
                         @else
                             <div id="folder-list">
                                 <ul class="list-group">
                                     @foreach($folders as $folder)
-                                        <li class="list-group-item">
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <div>
-                                                    <i class="fas fa-folder" style="color: #0072ff;"></i> 
-                                                    {{ $folder->name }} 
-                                                    <small class="text-muted">by {{ $folder->user->name }}</small>
+                                        @if(is_null($folder->parent_id) && $folder->is_public) {{-- Ensure it's a parent folder and public --}}
+                                            <li class="list-group-item">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <a href="#" id="navbarDropdown" aria-expanded="false">
+                                                            <img src="https://st3.depositphotos.com/1688079/14959/i/450/depositphotos_149595992-stock-photo-folder-icon-glassy-soft-green.jpg" class="rounded-circle img-fluid" height='25' width='25'>
+                                                        </a>
+                                                        {{ $folder->name }} 
+                                                        <small class="text-muted">by {{ $folder->user->name }}</small>
+                                                          {{-- Download Folder --}}
+                                            @if (is_null($folder->parent_id))
+                                                <a href="{{ route('download', $folder->id) }}" class="btn btn-link p-2"
+                                                    title="Download Folder">
+                                                    <i class="fa fa-download ml-5" style="font-size: 24px; color: #0072ff;"></i>
+                                                </a>
+                                            @endif
+                                                    </div>
+                                                    <button class="btn btn-view btn-sm mx-1 mb-1" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ $folder->id }}" aria-expanded="false" aria-controls="collapse-{{ $folder->id }}">
+                                                        <i class="fas fa-folder-open"></i> View
+                                                    </button>  
                                                 </div>
-                                                <button class="btn btn-view btn-sm mx-1 mb-1" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ $folder->id }}" aria-expanded="false" aria-controls="collapse-{{ $folder->id }}">
-                                                    <i class="fas fa-folder-open"></i> View
-                                                </button>
-                                            </div>
 
-                                            {{-- Collapsible section for files --}}
-                                            <div class="collapse mt-3" id="collapse-{{ $folder->id }}">
-                                                <ul class="list-unstyled ms-4">
-                                                    {{-- Display Files in Folder --}}
-                                                    @if($folder->files->isNotEmpty())
-                                                        <li><strong>Files:</strong>
-                                                            <ul class="list-unstyled">
-                                                                @foreach($folder->files as $file)
-                                                                    <li>
-                                                                        <i class="fas fa-file" style="color: #555;"></i>
-                                                                        <a href="{{ Storage::url($file->file_path) }}" target="_blank">{{ basename($file->file_path) }}</a>
-                                                                    </li>
-                                                                @endforeach
-                                                            </ul>
-                                                        </li>
-                                                    @else
-                                                        <li><em>No files available in this folder.</em></li>
-                                                    @endif
-                                                </ul>
-                                            </div>
-                                        </li>
+                                                {{-- Collapsible section for files and subfolders --}}
+                                                <div class="collapse mt-3" id="collapse-{{ $folder->id }}">
+                                                    <ul class="list-unstyled ms-4">
+                                                        {{-- Display Subfolders --}}
+                                                        @if($folder->subfolders->isNotEmpty())
+                                                            <li><strong>Subfolders:</strong>
+                                                                <ul class="list-unstyled">
+                                                                    
+                                                                    
+                                                                    @foreach($folder->subfolders as $subfolder)
+                                                                        <li>
+                                                                            <a href="#" id="navbarDropdown" aria-expanded="false">
+                                                                                <img src="https://st3.depositphotos.com/1688079/14959/i/450/depositphotos_149595992-stock-photo-folder-icon-glassy-soft-green.jpg" class="rounded-circle img-fluid" height='20' width='20'>
+                                                                            </a>
+                                                                            {{ $subfolder->name }} 
+                                                                            <small class="text-muted">by {{ $subfolder->user->name }}</small>
+                                                                            <button class="btn btn-view btn-sm mx-1 mb-1" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-subfolder-{{ $subfolder->id }}" aria-expanded="false" aria-controls="collapse-subfolder-{{ $subfolder->id }}">
+                                                                                <i class="fas fa-folder-open"></i> View
+                                                                            </button>
+                                                                            
+                                                                            
+
+                                                                            {{-- Collapsible section for subfolder files --}}
+                                                                            <div class="collapse mt-2" id="collapse-subfolder-{{ $subfolder->id }}">
+                                                                                <ul class="list-unstyled ms-4">
+                                                                                    {{-- Display Files in Subfolder --}}
+                                                                                    @if($subfolder->files->isNotEmpty())
+                                                                                        <li><strong>Files:</strong>
+                                                                                            <ul class="list-unstyled">
+                                                                                                @foreach($subfolder->files as $file)
+                                                                                                    <li>
+                                                                                                        <i class="fas fa-file" style="color: #555;"></i>
+                                                                                                        <a href="{{ Storage::url($file->file_path) }}" target="_blank">{{ basename($file->file_name) }}</a>
+                                                                                                    </li>
+                                                                                                @endforeach
+                                                                                            </ul>
+                                                                                        </li>
+                                                                                    @else
+                                                                                        <li><em>No files available in this subfolder.</em></li>
+                                                                                    @endif
+                                                                                </ul>
+                                                                            </div>
+                                                                        </li>
+                                                                    @endforeach
+                                                                </ul>
+                                                            </li>
+                                                        @else
+                                                            <li><em>No subfolders available in this folder.</em></li>
+                                                        @endif
+                                                        
+
+                                                        {{-- Display Files in Parent Folder --}}
+                                                        @if($folder->files->isNotEmpty())
+                                                            <li><strong>Files:</strong>
+                                                                <ul class="list-unstyled">
+                                                                    @foreach($folder->files as $file)
+                                                                        <li>
+                                                                            <i class="fas fa-file" style="color: #555;"></i>
+                                                                            <a href="{{ Storage::url($file->file_path) }}" target="_blank">{{ basename($file->file_name) }}</a>
+                                                                        </li>
+                                                                    @endforeach
+                                                                </ul>
+                                                            </li>
+                                                        @else
+                                                            <li><em>No files available in this folder.</em></li>
+                                                        @endif
+                                                    </ul>
+                                                </div>
+                                            </li>
+                                        @endif
                                     @endforeach
                                 </ul>
                             </div>
                         @endif
-
                     </div>
                 </div>
             </div>

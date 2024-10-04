@@ -9,8 +9,8 @@ class File extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'folder_id', 'file_path'];
-
+   protected $fillable = ['user_id', 'folder_id', 'file_name', 'file_path'];
+   
     public function folder()
     {
         return $this->belongsTo(Folder::class);

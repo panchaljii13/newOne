@@ -15,11 +15,11 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade'); // Add user_id
             $table->foreignId('folder_id')->constrained('folders')->onDelete('cascade');
+            $table->string('file_name')->nullable();  // Add file_name field
             $table->string('file_path');
             $table->timestamps();
         });
     }
-
 
     /**
      * Reverse the migrations.

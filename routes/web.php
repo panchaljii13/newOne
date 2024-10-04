@@ -4,16 +4,24 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\FolderController;
 use App\Http\Controllers\FileController;
+use App\Http\Controllers\HomeController;
+use App\Http\Middleware\SuperAdminMiddleware;
+use App\Http\Controllers\ProfileController;
+
+
+Route::get('/ShpwProfile', function () {
+    return view('ShpwProfile');
+});
+
+Route::get('/downloadHistory', function () {
+    return view('downloadHistory');
+});
 
 Route::get('/', function () {
 
     return view('UserLogin');
 });
 
-// Route::get('/', function () {
-
-//     return view('UserLogin');
-// });
 
 Route::get('/UserRegistration', [UserController::class, 'showRegistrationForm'])->name('UserRegistration');
 Route::post('/UserRegistration', [UserController::class, 'register']);
@@ -25,67 +33,92 @@ Route::get('include.Header', function () {
 
     return view('Header');
 });
-Route::get('/Home', function () {
-    return view('Home');
-});
 
-// Route::group(['middleware' => ['auth']], function() { // Ensure user is authenticated
-//     Route::get('/create/{parentId?}', [FolderController::class, 'create'])->name('create');
-//     Route::post('/store', [FolderController::class, 'store'])->name('store');
-//     // Route::get('/folders', [FolderController::class, 'index'])->name('folders.index');
-//     // Route::get('/folders/{id}', [FolderController::class, 'show'])->name('folders.show');
-//     // Route::put('/folders/{id}', [FolderController::class, 'update'])->name('folders.update');
-//     // Route::delete('/folders/{id}', [FolderController::class, 'destroy'])->name('folders.destroy');
+
+//-------------------------------------------Show Home -----------------
+
+
+Route::get('/Home', [HomeController::class, 'Homeindex'])->name('Home');
+
+// Route::get('/Home', function () {
+//     return view('Home');
 // });
+
+// -------------------------------------------create Folder -----------------
 
 Route::group(['middleware' => ['auth']], function() {
     // Display folder creation form
     Route::get('/create/{parentId?}', [FolderController::class, 'create'])->name('create');
+    // Route::get('/folders/{id}', [FolderController::class, 'show'])->name('viewFolder');
 
     // Handle form submission (POST request)
     Route::post('/store', [FolderController::class, 'store'])->name('store');
 
 });
-Route::delete('/destroy/{id}', [FolderController::class, 'destroy'])->name('destroy');
-Route::post('/uploadFile/{id}', [FileController::class, 'uploadFile'])->name('uploadFile');
+//--------------------------------------------Show All Folders -----------------
 
+
+Route::get('/indexFolder', [FolderController::class, 'index'])->name('indexFolder');
+//--------------------------------------------Show Public Folders Home-----------------
+
+Route::get('/{id}', [FolderController::class, 'show'])->name('show');
+// ----------------------------------------------Update Folder -----------------
 
 // Route to display the edit folder form
 Route::get('{id}/editFolder', [FolderController::class, 'edit'])->name('editFolder');
-// Route to handle the update request
-Route::put('/folders/{id}', [FolderController::class, 'Rename'])->name('updateFolder');
 
+// Route to handle the update request
+Route::put('/folders/{id}', [FolderController::class, 'update'])->name('updateFolder');
+
+
+// -------------------------------------------------Delete Folder -----------------
+
+Route::delete('/destroy/{id}', [FolderController::class, 'destroy'])->name('destroy');
+
+
+// ---------------------------------------------------Show public  Folder -----------------
 
 Route::put('{id}/toggle-public', [FolderController::class, 'togglePublic'])->name('togglePublic');
 Route::get('/Home', [FolderController::class, 'public'])->name('public');
 
+// --------------------------------------------------Uplode Files  -----------------
+Route::post('/uploadFile/{id}', [FileController::class, 'uploadFile'])->name('uploadFile');
+// ----------------------------------------------------Delete Files  -----------------
+Route::delete('/file/{id}', [FileController::class, 'destroy'])->name('deleteFile');
 
-// Route::get('/editFolder', function () {
-//     return view('editFolder');
+
+
+// -------------------------------------------------Downlord  Folder -----------------
+Route::get('/download/{folder}', [FolderController::class, 'download'])->name('download');
+// --------------------------------------------Show Downlord  Historys -----------------
+Route::get('/downloadHistory', [FolderController::class, 'showDownloadHistory'])->name('downloadHistory');
+
+
+
+// Route::get('/Pfl', function () {
+//     return view('Pf');
 // });
 
-// Route to handle the update request
-// Route::put('/folders/{id}', [FolderController::class, 'update'])->name('updateFolder');
+// Route::get('/Myprofile', function () {
+//     return view('Myprofile');
+// });
+// Route::get('/Myprofile', [ProfileController::class, 'show'])->name('Myprofile');
 
 
-// Route::group(['middleware' => ['auth']], function() { // Ensure user is authenticated
-//     Route::get('/folders/{folderId}/files/create', [FileController::class, 'create'])->name('files.create');
-//     Route::post('/files', [FileController::class, 'store'])->name('files.store');
-//     Route::get('/folders/{folderId}/files', [FileController::class, 'index'])->name('files.index');
-//     Route::delete('/files/{id}', [FileController::class, 'destroy'])->name('files.destroy');
+// ------------------------------------------------Log-Out -----------------
+Route::post('/logout', [UserController::class, 'logout'])->name('logout');
+
+// Route::get('Profile', function () {
+
+//     return view('Profile');
 // });
 
-// Route::get('/CreateFolder', function () {
-//     return view('CreateFolder');
-// });
-Route::get('/indexFolder', [FolderController::class, 'index'])->name('indexFolder');
-// Route::get('/indexFolder', function () {
-//     return view('indexFolder');
-// });
+// -----------------------------------------------Admin-----------------
 
-Route::get('/ShowFolders', function () {
-    return view('ShowFolders');
+// Admin routes protected by SuperAdmin middleware
+Route::group(['middleware' => ['auth', 'superAdmin']], function () {
+    Route::get('/admin/dashboard', [SuperAdminMiddleware::class, 'index'])->name('admin.dashboard');
+    Route::get('/admin/manage-users', [SuperAdminMiddleware::class, 'manageUsers'])->name('manage.users');
+    // Add more admin routes as needed
 });
 
-// Handle logout request
-Route::post('/logout', [UserController::class, 'logout'])->name('logout');

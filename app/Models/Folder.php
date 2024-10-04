@@ -29,7 +29,10 @@ class Folder extends Model
     {
         return $this->hasMany(File::class);
     }
-   
+    public function downloadHistories()
+    {
+        return $this->hasMany(DownloadHistory::class);
+    }
 
     
   

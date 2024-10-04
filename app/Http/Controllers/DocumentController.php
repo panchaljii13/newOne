@@ -2,13 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use DB;
 use Illuminate\Http\Request;
 
-class FolderController extends Controller
+class DocumentController extends Controller
 {
     // Create a new folder
     public function create(Request $request)
     {
+        DB::beginTransaction();
         $request->validate([
             'name' => 'required|string|max:255',
             'parent_id' => 'nullable|exists:folders,id',
@@ -19,6 +21,14 @@ class FolderController extends Controller
             'name' => $request->name,
             'parent_id' => $request->parent_id,
         ]);
+        if($folder){
+            DB::commit();
+            return redirect()->route('')->with('success','');
+        }
+        else{
+            DB::rollBack();
+            return redirect()->route('')->with('error','');
+        }
 
         return redirect()->back()->with('success', 'Folder created successfully.');
     }

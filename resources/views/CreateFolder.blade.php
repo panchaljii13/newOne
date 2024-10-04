@@ -3,7 +3,7 @@
 @section('title', 'Create Folder')
 
 @section('content')
-<section class="h-100 h-custom">
+<section class="h-100 h-custom" style="background-color: #f8f9fa;"> <!-- Set a light background color -->
     <div class="container py-2 h-80">
         <div class="row d-flex justify-content-center align-items-center h-100">
             <div class="col-lg-6 col-xl-6">
@@ -44,6 +44,7 @@
                                 @endif
                             </div>
 
+                            
                             <button type="submit" class="btn btn-success btn-lg" style="width: 100px; height: 40px; padding: 0; line-height: 40px; border: none;">Create</button>
                             <a href="{{ route('indexFolder') }}" class="btn btn-primary btn-lg" style="width: 100px; height: 40px; padding: 0; line-height: 40px; border: none;">Cancel</a>
                         </form>
@@ -53,4 +54,6 @@
         </div>
     </div>
 </section>
+
+
 @endsection
