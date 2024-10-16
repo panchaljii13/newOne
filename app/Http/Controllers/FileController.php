@@ -1,12 +1,14 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use App\Models\Url;
 use App\Models\File;
 use App\Models\Folder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
+
 
 class FileController extends Controller
 {
@@ -21,37 +23,21 @@ class FileController extends Controller
         return view('showUploadForm', compact('File'));
     }
 
-   // Store the uploaded file
-public function uploadFile(Request $request, $id)
-{
-    // Validate the file upload
-    $request->validate([
-        'file' => 'required|file|mimes:jpg,png,pdf,docx,txt|max:2048',
-    ]);
+   // --------------------------------------Store the uploaded file-----------------------------------
+   public function uploadFile(Request $request, $id)
+   {
+       // Call the uploadFile method in the File model
+       $file = File::uploadFile($request, $id);
+   
+       if ($file) {
+           return redirect()->back()->with('success', 'File uploaded successfully.');
+       }
+   
+       return redirect()->back()->with('error', 'Failed to upload file.');
+   }
+   
 
-    // Handle the file upload
-    if ($request->hasFile('file')) {
-        $file = $request->file('file');
-        $filePath = $file->store('files', 'public'); // Save file in public storage
-
-        // Get original file name
-        $fileName = $file->getClientOriginalName();
-
-        // Save file info to the database
-        File::create([
-            'user_id' => Auth::id(),
-            'folder_id' => $id,
-            'file_path' => $filePath,
-            'file_name' => $fileName, // Add this line
-        ]);
-
-        return redirect()->back()->with('success', 'File uploaded successfully.');
-    }
-
-    return redirect()->back()->with('error', 'Failed to upload file.');
-}
-
-    // Download the file
+    // ---------------------------------------Download the file-------------------------------------------
     public function download($id)
     {
         $file = File::findOrFail($id);
@@ -60,18 +46,50 @@ public function uploadFile(Request $request, $id)
 
     // Delete the file
     public function destroy($id)
-    {
-        $file = File::findOrFail($id); // File ko find karenge
-    
-        // File ka path delete karne se pehle ensure karein
-        $filePath = storage_path('app/public/' . $file->file_path);
-        if (file_exists($filePath)) {
-            unlink($filePath); // File ko delete karein from storage
-        }
-    
-        // Database se file ko delete karna
-        $file->delete();
-    
-        return redirect()->back()->with('success', 'File deleted successfully!');
+{
+    // Find the file by ID
+    $file = File::findOrFail($id); // File ko find karenge
+
+    // Call the deleteFile method to handle deletion
+    $file->deleteFile();
+
+    return redirect()->back()->with('success', 'File deleted successfully!');
+}
+
+
+
+    //---------------- ------------------------------rename file name ----------------
+
+   public function renameFile(Request $request, $id)
+{
+    // Validate the request
+    $request->validate([
+        'new_file_name' => [
+            'required',
+            'string',
+            'max:255',
+            Rule::unique('files', 'name')->ignore($id), // Ensure the new file name is unique
+        ],
+    ]);
+
+    // Find the file entry in the database
+    $file = File::find($id);
+
+    if (!$file) {
+        return redirect()->back()->with('error', 'File not found.');
     }
+
+    // Rename the file and save changes
+    $file->name = $request->input('new_file_name');
+    if ($file->save()) {
+        return redirect()->back()->with('success', 'File renamed successfully.');
+    }
+dd($file);
+    return redirect()->back()->with('error', 'Failed to rename the file.');
+}
+
+    
+
+
+
 }

@@ -10,9 +10,9 @@
                          class="w-100" style="border-top-left-radius: .3rem; border-top-right-radius: .3rem;"
                          alt="Sample photo">
                     <div class="card-body p-4 p-md-5">
-                        <h3 class="mb-4 pb-2 pb-md-0 mb-md-5 px-md-2">  LogIn Your Account</h3>
+                        <h3 class="mb-4 pb-2 pb-md-0 mb-md-5 px-md-2">LogIn Your Account</h3>
 
-                        <form action="{{ route('UserLogin') }}" method="POST"> <!-- Use correct route name -->
+                        <form id="loginForm">
                             @csrf <!-- CSRF token for form security -->
 
                             <!-- Email Field -->
@@ -34,22 +34,59 @@
                             <p class="small fw-bold mt-2 pt-1 mb-0">Don't have an account? <a href="{{ route('UserRegistration') }}"
                                 class="link-danger">Register</a></p>
                         </form>
-
-                        <!-- Display validation errors -->
-                        @if ($errors->any())
-                            <div class="alert alert-danger mt-3">
-                                <ul>
-                                    @foreach ($errors->all() as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        @endif
-
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+
+    <script>
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        e.preventDefault(); // Form ko submit hone se rokta hai
+
+        // Get email and password values
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        // Send Axios POST request
+        axios.post('/UserLogin', {
+            email: email,
+            password: password,
+            _token: "{{ csrf_token() }}" // Laravel CSRF token
+        })
+        .then(response => {
+            const token = response.data.token;
+            localStorage.setItem('auth_token', token); // Token ko localStorage mein save karta hai
+            sessionStorage.setItem('auth_token', token); 
+            window.location.href = '/home'; // Redirect after login
+            // SweetAlert2 success alert
+            Swal.fire({
+                title: 'Success!',
+                text: 'Login successful!',
+                icon: 'success',
+                confirmButtonText: 'OK'
+            }).then(() => {
+                // Redirect user after SweetAlert closes
+               
+            });
+        })
+        .catch(error => {
+            console.log(error.response.data);
+
+            // SweetAlert2 error alert
+            Swal.fire({
+                title: 'Error!',
+                text: 'Login failed. Please check your credentials.',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        });
+    });
+</script>
+
 </section>
 @endsection

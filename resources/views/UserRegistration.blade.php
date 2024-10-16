@@ -12,7 +12,7 @@
                     <div class="card-body p-4 p-md-3">
                         <h3 class="mb-4 pb-1 pb-md-0 mb-md-2 px-md-2">Welcome To Registration</h3>
 
-                        <form class="px-md-2" method="POST" action="{{ route('UserRegistration') }}">
+                        <form id="registrationForm" class="px-md-2" method="POST" action="{{ route('UserRegistration') }}">
                             @csrf <!-- CSRF token for form security -->
 
                             <!-- Name Field -->
@@ -20,6 +20,7 @@
                                 <label class="form-label" for="name">Name</label>
                                 <input type="text" id="name" name="name" class="form-control"
                                        placeholder="Enter Name" required />
+                                <span class="text-danger" id="nameError"></span> <!-- Error message for name -->
                             </div>
 
                             <!-- Email Field -->
@@ -27,6 +28,7 @@
                                 <label class="form-label" for="email">Email</label>
                                 <input type="email" id="email" name="email" class="form-control"
                                        placeholder="Enter Email" required />
+                                <span class="text-danger" id="emailError"></span> <!-- Error message for email -->
                             </div>
 
                             <!-- Password Field -->
@@ -34,6 +36,7 @@
                                 <label class="form-label" for="password">Password</label>
                                 <input type="password" id="password" name="password" class="form-control"
                                        placeholder="Enter password" required />
+                                <span class="text-danger" id="passwordError"></span> <!-- Error message for password -->
                             </div>
 
                             <!-- Confirm Password Field -->
@@ -41,9 +44,10 @@
                                 <label class="form-label" for="password_confirmation">Confirm Password</label>
                                 <input type="password" id="password_confirmation" name="password_confirmation" class="form-control"
                                        placeholder="Confirm password" required />
+                                <span class="text-danger" id="passwordConfirmationError"></span> <!-- Error message for password confirmation -->
                             </div>
 
-                            <button type="submit"  style="width: 100px; height: 40px; padding: 0; line-height: 40px; border: none;" class="btn btn-success btn-lg mb-1">Submit</button>
+                            <button type="submit" style="width: 100px; height: 40px; padding: 0; line-height: 40px; border: none;" class="btn btn-success btn-lg mb-1">Submit</button>
                             <p class="small fw-bold mt-2 pt-1 mb-0">You have an account? <a href="{{ route('UserLogin') }}"
                                 class="link-danger">Login</a></p>
 
@@ -57,7 +61,6 @@
                                     </ul>
                                 </div>
                             @endif
-
                         </form>
 
                     </div>
@@ -65,5 +68,76 @@
             </div>
         </div>
     </div>
+
+    <!-- Include SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <script>
+        document.getElementById('registrationForm').addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent form submission
+            
+            // Clear previous error messages
+            document.getElementById('nameError').innerText = '';
+            document.getElementById('emailError').innerText = '';
+            document.getElementById('passwordError').innerText = '';
+            document.getElementById('passwordConfirmationError').innerText = '';
+
+            // Gather form data
+            const formData = new FormData(this);
+            const formAction = this.action; // Get the form action URL
+            
+            // Send Axios POST request
+            axios.post(formAction, formData)
+                .then(response => {
+                    // SweetAlert2 success alert
+                    Swal.fire({
+                        title: 'Success!',
+                        text: 'Registration successful!',
+                        icon: 'success',
+                        confirmButtonText: 'OK'
+                    }).then(() => {
+                        // Redirect user after alert is closed
+                        window.location.href = '/UserLogin'; // Redirect to the login page
+                    });
+                })
+                .catch(error => {
+                    if (error.response && error.response.status === 422) {
+                        const errors = error.response.data.errors;
+
+                        // Display validation errors on specific fields
+                        if (errors.name) {
+                            document.getElementById('nameError').innerText = errors.name[0];
+                        }
+                        if (errors.email) {
+                            document.getElementById('emailError').innerText = errors.email[0];
+                        }
+                        if (errors.password) {
+                            document.getElementById('passwordError').innerText = errors.password[0];
+                        }
+                        if (errors.password_confirmation) {
+                            document.getElementById('passwordConfirmationError').innerText = errors.password_confirmation[0];
+                        }
+
+                        // SweetAlert2 error alert for general errors
+                        Swal.fire({
+                            title: 'Error!',
+                            text: 'There are errors in the form. Please check the highlighted fields.',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    } else {
+                        console.log(error);
+                        // SweetAlert2 error alert for non-validation errors
+                        Swal.fire({
+                            title: 'Error!',
+                            text: 'Registration failed. Please try again later.',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                });
+        });
+    </script>
 </section>
 @endsection

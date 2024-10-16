@@ -7,6 +7,8 @@ use App\Http\Controllers\FileController;
 use App\Http\Controllers\HomeController;
 use App\Http\Middleware\SuperAdminMiddleware;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\UrlController;
+
 
 
 Route::get('/ShpwProfile', function () {
@@ -17,36 +19,30 @@ Route::get('/downloadHistory', function () {
     return view('downloadHistory');
 });
 
+// Route to show the login page
 Route::get('/', function () {
-
     return view('UserLogin');
 });
 
-
+// Registration routes
 Route::get('/UserRegistration', [UserController::class, 'showRegistrationForm'])->name('UserRegistration');
 Route::post('/UserRegistration', [UserController::class, 'register']);
 
-Route::get('/UserLogin', [UserController::class, 'UserLogin'])->name('UserLogin');
-Route::post('/UserLogin', [UserController::class, 'login']);
+// Login routes
+Route::get('/UserLogin', [UserController::class, 'UserLogin'])->name('UserLogin'); // Add name here
+Route::post('/UserLogin', [UserController::class, 'login'])->name('login');
 
-Route::get('include.Header', function () {
-
-    return view('Header');
-});
-
-
-//-------------------------------------------Show Home -----------------
+    Route::middleware(['auth:sanctum'])->group(function () {
+        
+        Route::get('/home', [HomeController::class, 'index'])->name('Home');
 
 
-Route::get('/Home', [HomeController::class, 'Homeindex'])->name('Home');
+  
 
-// Route::get('/Home', function () {
-//     return view('Home');
-// });
 
-// -------------------------------------------create Folder -----------------
+         // -------------------------------------------create Folder -----------------
 
-Route::group(['middleware' => ['auth']], function() {
+// Route::group(['middleware' => ['auth:sanctum']], function() {
     // Display folder creation form
     Route::get('/create/{parentId?}', [FolderController::class, 'create'])->name('create');
     // Route::get('/folders/{id}', [FolderController::class, 'show'])->name('viewFolder');
@@ -54,7 +50,7 @@ Route::group(['middleware' => ['auth']], function() {
     // Handle form submission (POST request)
     Route::post('/store', [FolderController::class, 'store'])->name('store');
 
-});
+// });
 //--------------------------------------------Show All Folders -----------------
 
 
@@ -85,6 +81,21 @@ Route::get('/Home', [FolderController::class, 'public'])->name('public');
 Route::post('/uploadFile/{id}', [FileController::class, 'uploadFile'])->name('uploadFile');
 // ----------------------------------------------------Delete Files  -----------------
 Route::delete('/file/{id}', [FileController::class, 'destroy'])->name('deleteFile');
+Route::put('/files/{id}/rename', [FileController::class, 'renameFile'])->name('renameFile');
+
+
+// Route::put('/files/rename/{id}', [FileController::class, 'renameFile'])->name('renameFile');
+//--------------------------------- Url add------------------------------------
+// Route::post('/store-url', [FileController::class, 'storeUrl'])->name('storeUrl');
+
+Route::resource('urls', UrlController::class);
+// Route::get('/urls/{id}', [UrlController::class, 'show'])->name('showUrl');
+Route::post('/store-url', [UrlController::class, 'storeUrl'])->name('storeUrl');
+
+Route::delete('/urls/{id}', [UrlController::class, 'destroy'])->name('deleteUrl');
+
+Route::put('/urls/{id}/rename', [UrlController::class, 'update'])->name('renameUrl');
+
 
 
 
@@ -106,12 +117,44 @@ Route::get('/downloadHistory', [FolderController::class, 'showDownloadHistory'])
 
 
 // ------------------------------------------------Log-Out -----------------
-Route::post('/logout', [UserController::class, 'logout'])->name('logout');
 
 // Route::get('Profile', function () {
 
 //     return view('Profile');
 // });
+
+// });
+
+// Route::middleware('auth:sanctum')->group(function () {
+//     Route::get('/Home', [HomeController::class, 'Homeindex'])->name('Home');
+
+//     Route::get('/UserProfile', [UserController::class, 'UserProfile'])->name('UserProfile'); // Example
+//     Route::post('/UserLogout', [UserController::class, 'logout'])->name('UserLogout');
+//     // Add other routes you want to protect
+// });
+
+
+Route::get('include.Header', function () {
+
+    return view('Header');
+});
+
+
+//-------------------------------------------Show Home -----------------
+
+
+// Route::get('/Home', [HomeController::class, 'Homeindex'])->name('Home');
+
+// Route::get('/Home', function () {
+//     return view('Home');
+// });
+
+
+
+    });
+
+
+    Route::post('/logout', [UserController::class, 'logout'])->name('logout');
 
 // -----------------------------------------------Admin-----------------
 

@@ -19,8 +19,9 @@
                         @else
                             <div id="folder-list">
                                 <ul class="list-group">
+                                    {{-- Display Public Parent Folders --}}
                                     @foreach($folders as $folder)
-                                        @if(is_null($folder->parent_id) && $folder->is_public) {{-- Ensure it's a parent folder and public --}}
+                                        @if(is_null($folder->parent_id) && $folder->is_public)
                                             <li class="list-group-item">
                                                 <div class="d-flex justify-content-between align-items-center">
                                                     <div>
@@ -29,28 +30,22 @@
                                                         </a>
                                                         {{ $folder->name }} 
                                                         <small class="text-muted">by {{ $folder->user->name }}</small>
-                                                          {{-- Download Folder --}}
-                                            @if (is_null($folder->parent_id))
-                                                <a href="{{ route('download', $folder->id) }}" class="btn btn-link p-2"
-                                                    title="Download Folder">
-                                                    <i class="fa fa-download ml-5" style="font-size: 24px; color: #0072ff;"></i>
-                                                </a>
-                                            @endif
+                                                        <a href="#" class="btn btn-link p-2 download-folder" data-folder-id="{{ $folder->id }}" title="Download Folder">
+                                                            <i class="fa fa-download ml-5" style="font-size: 24px; color: #0072ff;"></i>
+                                                        </a>
                                                     </div>
                                                     <button class="btn btn-view btn-sm mx-1 mb-1" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ $folder->id }}" aria-expanded="false" aria-controls="collapse-{{ $folder->id }}">
                                                         <i class="fas fa-folder-open"></i> View
                                                     </button>  
                                                 </div>
 
-                                                {{-- Collapsible section for files and subfolders --}}
+                                                {{-- Collapsible section for files, subfolders, and URLs --}}
                                                 <div class="collapse mt-3" id="collapse-{{ $folder->id }}">
                                                     <ul class="list-unstyled ms-4">
                                                         {{-- Display Subfolders --}}
                                                         @if($folder->subfolders->isNotEmpty())
                                                             <li><strong>Subfolders:</strong>
                                                                 <ul class="list-unstyled">
-                                                                    
-                                                                    
                                                                     @foreach($folder->subfolders as $subfolder)
                                                                         <li>
                                                                             <a href="#" id="navbarDropdown" aria-expanded="false">
@@ -62,9 +57,7 @@
                                                                                 <i class="fas fa-folder-open"></i> View
                                                                             </button>
                                                                             
-                                                                            
-
-                                                                            {{-- Collapsible section for subfolder files --}}
+                                                                            {{-- Collapsible section for subfolder files and URLs --}}
                                                                             <div class="collapse mt-2" id="collapse-subfolder-{{ $subfolder->id }}">
                                                                                 <ul class="list-unstyled ms-4">
                                                                                     {{-- Display Files in Subfolder --}}
@@ -82,6 +75,23 @@
                                                                                     @else
                                                                                         <li><em>No files available in this subfolder.</em></li>
                                                                                     @endif
+
+                                                                                    {{-- Display URLs in Subfolder --}}
+                                                                                    @if($subfolder->urls->isNotEmpty())
+                                                                                        <li><strong>URLs:</strong>
+                                                                                            <ul class="list-unstyled">
+                                                                                                @foreach($subfolder->urls as $url)
+                                                                                                    <li>
+                                                                                                        <i class="fas fa-link" style="color: #555;"></i>
+                                                                                                        <a href="{{ $url->link }}" target="_blank">{{ $url->name }}</a>
+                                                                                                        <small class="text-muted">by {{ $url->user->name }}</small>
+                                                                                                    </li>
+                                                                                                @endforeach
+                                                                                            </ul>
+                                                                                        </li>
+                                                                                    @else
+                                                                                        <li><em>No URLs available in this subfolder.</em></li>
+                                                                                    @endif
                                                                                 </ul>
                                                                             </div>
                                                                         </li>
@@ -91,7 +101,6 @@
                                                         @else
                                                             <li><em>No subfolders available in this folder.</em></li>
                                                         @endif
-                                                        
 
                                                         {{-- Display Files in Parent Folder --}}
                                                         @if($folder->files->isNotEmpty())
@@ -107,6 +116,23 @@
                                                             </li>
                                                         @else
                                                             <li><em>No files available in this folder.</em></li>
+                                                        @endif
+
+                                                        {{-- Display URLs in Parent Folder --}}
+                                                        @if($folder->urls->isNotEmpty())
+                                                            <li><strong>URLs:</strong>
+                                                                <ul class="list-unstyled">
+                                                                    @foreach($folder->urls as $url)
+                                                                        <li>
+                                                                            <i class="fas fa-link" style="color: #555;"></i>
+                                                                            <a href="{{ $url->url }}" target="_blank">{{ $url->name }}</a>
+                                                                            <small class="text-muted">by {{ $url->user->name }}</small>
+                                                                        </li>
+                                                                    @endforeach
+                                                                </ul>
+                                                            </li>
+                                                        @else
+                                                            <li><em>No URLs available in this folder.</em></li>
                                                         @endif
                                                     </ul>
                                                 </div>
@@ -147,4 +173,35 @@
     }
 </style>
 </div>
+
+<!-- Include SweetAlert2 and Axios -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+<script>
+    // Add click event listener to download links
+    document.querySelectorAll('.download-folder').forEach(function(link) {
+        link.addEventListener('click', function(e) {
+            e.preventDefault(); // Prevent the default action
+
+            const folderId = this.getAttribute('data-folder-id');
+
+            // SweetAlert2 confirmation dialog
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You are about to download this folder!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, download it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Redirect to the download route
+                    window.location.href = "{{ url('download') }}/" + folderId;
+                }
+            });
+        });
+    });
+</script>
 @endsection

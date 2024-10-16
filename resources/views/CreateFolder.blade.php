@@ -46,8 +46,8 @@
 
                             
                             <button type="submit" class="btn btn-success btn-lg" style="width: 100px; height: 40px; padding: 0; line-height: 40px; border: none;">Create</button>
-                            <a href="{{ route('indexFolder') }}" class="btn btn-primary btn-lg" style="width: 100px; height: 40px; padding: 0; line-height: 40px; border: none;">Cancel</a>
-                        </form>
+                            <a href="javascript:void(0);" onclick="window.history.back();" class="btn btn-primary btn-lg" style="width: 100px; height: 40px; padding: 0; line-height: 40px; border: none;">Cancel</a>
+                            </form>
                     </div>
                 </div>
             </div>
